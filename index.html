@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Claim Tak - Quick Quote</title>
+<style>
+  :root{--primary:#374a8f;--bg:#f4f5fa;--card:#fff;--muted:#f8f9fc;--border:#d0d4dd;--text:#111827;--gray:#6b7280;--red:#dc2626}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Noto Sans Devanagari","Noto Sans","Segoe UI",sans-serif;background:var(--bg);color:var(--text);padding-bottom:90px}
+  .langbar{background:#111;display:flex;justify-content:center;gap:8px;padding:10px;position:sticky;top:0;z-index:6}
+  .langbar button{flex:1;max-width:140px;padding:8px;border:1px solid #444;background:#1f1f1f;color:#ddd;border-radius:8px;font-size:15px;cursor:pointer}
+  .langbar button.active{background:#dc2626;border-color:#dc2626;color:#fff;font-weight:700}
+  .ticker{background:#b91c1c;color:#fff;overflow:hidden;white-space:nowrap;padding:8px 0;font-weight:600;font-size:15px}
+  .ticker span{display:inline-block;animation:marq 18s linear infinite}
+  @keyframes marq{from{transform:translateX(100%)}to{transform:translateX(-100%)}}
+  .brand{background:#fff;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 16px;border-bottom:1px solid #e5e7eb}
+  .brand img{width:64px;height:64px;object-fit:cover;border-radius:50%;display:block;margin:0}
+  .brand img.poster{width:auto;height:64px;object-fit:contain;border-radius:6px}
+  main{max-width:520px;margin:0 auto;padding:16px}
+  .card{background:var(--card);border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  h2{font-size:17px;margin:0 0 12px;line-height:1.4}
+  label{display:block;font-size:15px;margin:10px 0 6px}
+  .req::after{content:" *";color:var(--red)}
+  input[type=text],select,textarea{width:100%;padding:12px;border:1.5px solid var(--border);border-radius:10px;font-size:16px;background:#fff;font-family:inherit}
+  textarea{min-height:90px;resize:vertical}
+  .row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #eee}
+  .row:last-child{border-bottom:none}
+  .row small{display:block;color:var(--gray);font-size:13px}
+  .row select{width:130px}
+  .member{background:var(--muted);border-radius:12px;padding:12px;margin-bottom:10px}
+  .member .title{font-style:italic;font-weight:600;margin-bottom:6px}
+  .member .row{border:none;padding:4px 0}
+  .radio{display:flex;gap:28px;margin-top:8px;font-size:16px}
+  .radio label{display:flex;align-items:center;gap:6px;margin:0;cursor:pointer}
+  .notice{background:#fff7ed;border:1px solid #fdba74;color:#9a3412;padding:10px;border-radius:10px;font-size:14px;margin-top:10px;display:none}
+  .btn{width:100%;padding:15px;border:none;border-radius:12px;background:var(--primary);color:#fff;font-size:17px;font-weight:700;cursor:pointer}
+  .btn-sec{background:#e5e7eb;color:#111}
+  .btn-wa{background:#25d366}
+  .err{color:var(--red);font-size:14px;margin-top:10px;display:none}
+  .bar{position:fixed;bottom:0;left:0;right:0;background:#fff;padding:12px 16px;border-top:1px solid #e5e7eb;display:flex;gap:10px;align-items:center}
+  .bar .btn-clear{flex:0 0 90px;background:none;border:none;color:var(--gray);font-size:16px;font-weight:600;cursor:pointer}
+  .bar .btn{flex:1}
+  .hint{font-size:13px;color:var(--gray);margin-top:6px}
+  pre{white-space:pre-wrap;word-wrap:break-word;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:12px;font-family:inherit;font-size:15px;line-height:1.5;margin:0}
+  table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+  th,td{border-bottom:1px solid #eee;padding:6px;text-align:left}
+  td input{width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:14px}
+  .hidden{display:none !important}
+  .btns{display:flex;gap:10px;margin-top:10px}
+  .btns .btn{flex:1}
+  #pdfStatus{font-size:14px;color:var(--gray);margin-top:8px}
+  .agent-head{background:#fff;padding:16px;text-align:center;font-size:20px;font-weight:700;border-bottom:1px solid #e5e7eb}
+  .brandfoot{text-align:center;padding:18px 12px 10px;margin-top:10px;border-top:2px solid #dc2626;color:#374151;font-size:15px;line-height:1.6}
+  .bf-name{font-size:18px;font-weight:700;color:#111}
+  .bf-since{color:#dc2626;font-weight:600}
+  .brandfoot a{display:block;color:var(--primary);font-weight:600;text-decoration:none;margin-top:4px}
+</style>
+</head>
+<body>
+
+<!-- ================= CUSTOMER VIEW ================= -->
+<div id="customerView">
+  <div class="langbar">
+    <button data-lang="mr" class="active" onclick="setLang('mr')">मराठी</button>
+    <button data-lang="hi" onclick="setLang('hi')">हिंदी</button>
+    <button data-lang="en" onclick="setLang('en')">English</button>
+  </div>
+
+  <div class="ticker"><span id="tickerText"></span></div>
+
+  <div class="brand">
+    <img src="starhealth.jpg" alt="Star Health Insurance">
+    <img class="poster" src="claimtak.png" alt="Claim Tak poster">
+    <img src="claimtak-logo.png" alt="Claim Tak">
+  </div>
+
+  <main>
+    <div class="card">
+      <label class="req" for="name" data-i18n="name"></label>
+      <input type="text" id="name" data-i18n-ph="namePh">
+    </div>
+
+    <div class="card">
+      <h2 data-i18n="secMembers"></h2>
+      <div class="row">
+        <div><strong data-i18n="parents"></strong><small data-i18n="parentsR"></small></div>
+        <select id="cnt_parent" onchange="renderAges()"></select>
+      </div>
+      <div class="row">
+        <div><strong data-i18n="adults"></strong><small data-i18n="adultsR"></small></div>
+        <select id="cnt_adult" onchange="renderAges()"></select>
+      </div>
+      <div class="row">
+        <div><strong data-i18n="children"></strong><small data-i18n="childrenR"></small></div>
+        <select id="cnt_child" onchange="renderAges()"></select>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 data-i18n="secDetails"></h2>
+      <div id="memberAges"></div>
+    </div>
+
+    <div class="card">
+      <h2 data-i18n="ped"></h2>
+      <div class="radio">
+        <label><input type="radio" name="ped" value="yes" onchange="togglePed()"> <span data-i18n="yes"></span></label>
+        <label><input type="radio" name="ped" value="no" onchange="togglePed()"> <span data-i18n="no"></span></label>
+      </div>
+      <div class="notice" id="pedNotice" data-i18n="pedNotice"></div>
+    </div>
+
+    <div class="card">
+      <label for="family" data-i18n="familyQ"></label>
+      <textarea id="family" data-i18n-ph="familyPh"></textarea>
+    </div>
+
+    <div class="err" id="err"></div>
+
+    <div class="brandfoot">
+      <div class="bf-name">Navin Parakh</div>
+      <div class="bf-since">Since 2007</div>
+      <a href="tel:+919158858885">9158858885</a>
+      <a href="https://www.claimtak.in" target="_blank" rel="noopener">www.claimtak.in</a>
+    </div>
+  </main>
+
+  <div class="bar">
+    <button class="btn-clear" data-i18n="clear" onclick="clearForm()"></button>
+    <button class="btn" data-i18n="getQ" onclick="getQuote()"></button>
+  </div>
+</div>
+
+<!-- ================= AGENT VIEW (open with #agent) ================= -->
+<div id="agentView" class="hidden">
+  <div class="agent-head">सल्लागार पॅनेल</div>
+  <main>
+    <div class="card">
+      <h2>1. कोटेशन PDF अपलोड करा</h2>
+      <input type="file" id="pdfFile" accept="application/pdf">
+      <div id="pdfStatus"></div>
+    </div>
+
+    <div class="card">
+      <h2>2. प्रीमियम तपासा / दुरुस्त करा</h2>
+      <label for="qName">ग्राहकाचे नाव</label>
+      <input type="text" id="qName" placeholder="उदा. राहुल">
+      <table>
+        <thead><tr><th>Sum Insured</th><th>1 वर्ष</th><th>2 वर्षे</th><th>3 वर्षे</th></tr></thead>
+        <tbody id="premRows"></tbody>
+      </table>
+    </div>
+
+    <button class="btn" onclick="genQuote()">टेक्स्ट कोटेशन तयार करा</button>
+
+    <div class="card hidden" id="outCard" style="margin-top:14px">
+      <h2>कोटेशन मेसेज</h2>
+      <pre id="quoteOut"></pre>
+      <div class="btns">
+        <button class="btn btn-sec" onclick="copyQuote()">कॉपी करा</button>
+        <button class="btn btn-wa" onclick="shareQuote()">WhatsApp वर पाठवा</button>
+      </div>
+      <div class="hint" id="copyMsg"></div>
+    </div>
+
+    <div class="brandfoot">
+      <div class="bf-name">Navin Parakh</div>
+      <div class="bf-since">Since 2007</div>
+      <a href="tel:+919158858885">9158858885</a>
+      <a href="https://www.claimtak.in" target="_blank" rel="noopener">www.claimtak.in</a>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+/* ---------- CONFIG ---------- */
+const WA_NUMBER = '919158858885';
+const SIS = [['10,00,000','10 लाख'],['15,00,000','15 लाख'],['20,00,000','20 लाख']];
+const GROUPS = [
+  {key:'parent', max:4, ageMin:18, ageMax:75,  def:0},
+  {key:'adult',  max:6, ageMin:18, ageMax:100, def:1},
+  {key:'child',  max:6, ageMin:0,  ageMax:25,  def:0}
+];
+
+/* ---------- TRANSLATIONS ---------- */
+const T = {
+  mr:{
+    ticker:'आमच्या ग्राहकांना क्लेम सेवा कायम मोफत , जे आमचे ग्राहक नाहीत त्यांच्या कडून आम्ही फी घेतो',
+    name:'नाव', namePh:'पूर्ण नाव',
+    secMembers:'विमा घ्यायचे सदस्य निवडा', secDetails:'सदस्यांचा तपशील',
+    parents:'पालक', adults:'प्रौढ', children:'मुले',
+    parentsR:'18 - 75 वर्षे', adultsR:'18 - 100 वर्षे', childrenR:'16 दिवस - 25 वर्षे',
+    member:{parent:'पालक', adult:'प्रौढ', child:'मूल'},
+    age:'वय', ped:'विमाधारकांपैकी कुणाला पूर्वीचा आजार (PED) आहे का?',
+    yes:'होय', no:'नाही', pedNotice:'PED ची माहिती तुमच्या WhatsApp संदेशात समाविष्ट केली जाईल.',
+    familyQ:'कुटुंबातील कुणाला काही आजार आहे का, कुणाची कसली शस्त्रक्रिया झाली होती का? (ऐच्छिक)',
+    familyPh:'उदा. वडिलांना मधुमेह, आईची गुडघा शस्त्रक्रिया (2019)',
+    clear:'साफ करा', getQ:'कोटेशन मिळवा',
+    errName:'कृपया नाव भरा.', errCount:'किमान एक सदस्य निवडा.', errPed:'PED प्रश्नाचे उत्तर निवडा.', errAge:'सर्व सदस्यांचे वय निवडा.',
+    select:'निवडा', under1:'1 वर्षाखालील', years:'वर्षे',
+    msgTitle:'नवीन कोटेशन विनंती', msgName:'नाव', msgAge:'वय', msgPed:'PED', msgFamily:'कुटुंब आरोग्य माहिती', msgNone:'नाही', msgCount:'संख्या'
+  },
+  hi:{
+    ticker:'हमारे ग्राहकों के लिए क्लेम सेवा हमेशा निःशुल्क है, जो हमारे ग्राहक नहीं हैं उनसे हम शुल्क लेते हैं',
+    name:'नाम', namePh:'पूरा नाम',
+    secMembers:'बीमा करवाने वाले सदस्य चुनें', secDetails:'सदस्यों का विवरण',
+    parents:'माता-पिता', adults:'वयस्क', children:'बच्चे',
+    parentsR:'18 - 75 वर्ष', adultsR:'18 - 100 वर्ष', childrenR:'16 दिन - 25 वर्ष',
+    member:{parent:'माता-पिता', adult:'वयस्क', child:'बच्चा'},
+    age:'आयु', ped:'क्या बीमित सदस्यों में से किसी को पूर्व-विद्यमान रोग (PED) है?',
+    yes:'हाँ', no:'नहीं', pedNotice:'PED की जानकारी आपके WhatsApp संदेश में शामिल की जाएगी।',
+    familyQ:'परिवार में किसी को कोई बीमारी है, या किसी की कोई सर्जरी हुई है? (वैकल्पिक)',
+    familyPh:'जैसे पिताजी को डायबिटीज़, माँ की घुटने की सर्जरी (2019)',
+    clear:'साफ़ करें', getQ:'कोटेशन प्राप्त करें',
+    errName:'कृपया नाम भरें।', errCount:'कम से कम एक सदस्य चुनें।', errPed:'PED प्रश्न का उत्तर चुनें।', errAge:'सभी सदस्यों की आयु चुनें।',
+    select:'चुनें', under1:'1 वर्ष से कम', years:'वर्ष',
+    msgTitle:'नई कोटेशन अनुरोध', msgName:'नाम', msgAge:'आयु', msgPed:'PED', msgFamily:'परिवार स्वास्थ्य जानकारी', msgNone:'नहीं', msgCount:'संख्या'
+  },
+  en:{
+    ticker:'Claim service is always free for our customers; we charge a fee from those who are not our customers',
+    name:'Name', namePh:'Full name',
+    secMembers:'Select member(s) to insure', secDetails:'Select details of member(s)',
+    parents:'Number of Parents', adults:'Number of Adults', children:'Number of Children',
+    parentsR:'18 years - 75 years', adultsR:'18 years - 100 years', childrenR:'16 days - 25 years',
+    member:{parent:'Parent', adult:'Adult', child:'Child'},
+    age:'Age', ped:'Does any of the Insured members have Pre-existing Diseases (PED)?',
+    yes:'Yes', no:'No', pedNotice:'PED details will be included in your WhatsApp message.',
+    familyQ:'Does anyone in the family have any illness, or has anyone had any surgery? (Optional)',
+    familyPh:'e.g. Father - diabetes, Mother - knee surgery (2019)',
+    clear:'Clear', getQ:'Get Quotation',
+    errName:'Please enter your name.', errCount:'Select at least one member.', errPed:'Please answer the PED question.', errAge:'Select age for all members.',
+    select:'Select', under1:'Under 1 year', years:'years',
+    msgTitle:'New quotation request', msgName:'Name', msgAge:'Age', msgPed:'PED', msgFamily:'Family health info', msgNone:'None', msgCount:'Count'
+  }
+};
+
+let lang='mr';
+const $ = id => document.getElementById(id);
+const t = () => T[lang];
+
+/* ---------- language ---------- */
+function setLang(l){
+  lang=l;
+  document.documentElement.lang=l;
+  document.querySelectorAll('.langbar button').forEach(b=>b.classList.toggle('active', b.dataset.lang===l));
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ el.textContent = t()[el.dataset.i18n] ?? ''; });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{ el.placeholder = t()[el.dataset.i18nPh] ?? ''; });
+  $('tickerText').textContent = t().ticker;
+  renderAges();
+}
+
+/* ---------- form builders ---------- */
+function renderCounts(){
+  GROUPS.forEach(g=>{
+    const prev=$('cnt_'+g.key).value;
+    let h='';
+    for(let n=0;n<=g.max;n++){
+      const sel = (prev!=='' ? +prev===n : n===g.def);
+      h+=`<option value="${n}" ${sel?'selected':''}>${n}</option>`;
+    }
+    $('cnt_'+g.key).innerHTML=h;
+  });
+}
+
+function ageOptions(g, sel){
+  let h=`<option value="">${t().select}</option>`;
+  for(let n=g.ageMin;n<=g.ageMax;n++){
+    const lbl = (g.key==='child' && n===0) ? t().under1 : String(n);
+    h+=`<option value="${n}" ${String(n)===sel?'selected':''}>${lbl}</option>`;
+  }
+  return h;
+}
+
+function renderAges(){
+  const prev={};
+  document.querySelectorAll('#memberAges select').forEach(s=>prev[s.id]=s.value);
+  let html='';
+  GROUPS.forEach(g=>{
+    const n=+$('cnt_'+g.key).value;
+    for(let i=1;i<=n;i++){
+      const id=`age_${g.key}_${i}`;
+      html+=`<div class="member">
+               <div class="title">${t().member[g.key]} ${i}</div>
+               <div class="row"><span class="req">${t().age}</span>
+                 <select id="${id}">${ageOptions(g, prev[id]||'')}</select>
+               </div>
+             </div>`;
+    }
+  });
+  $('memberAges').innerHTML = html;
+}
+
+function togglePed(){
+  const y=document.querySelector('input[name=ped]:checked');
+  $('pedNotice').style.display = (y && y.value==='yes') ? 'block' : 'none';
+}
+
+function clearForm(){
+  $('name').value='';
+  $('family').value='';
+  document.querySelectorAll('input[name=ped]').forEach(r=>r.checked=false);
+  GROUPS.forEach(g=>$('cnt_'+g.key).value=g.def);
+  togglePed();
+  renderAges();
+  $('err').style.display='none';
+}
+
+/* ---------- CUSTOMER: Get Quotation -> WhatsApp ---------- */
+function leadMessage(){
+  const x=t();
+  const lines=[`🆕 *${x.msgTitle}*`,''];
+  lines.push(`👤 ${x.msgName}: ${$('name').value.trim()}`);
+  lines.push('');
+  GROUPS.forEach(g=>{
+    const n=+$('cnt_'+g.key).value;
+    lines.push(`${x.member[g.key]}s: ${n}`);
+    if(n){
+      const ages=[];
+      for(let i=1;i<=n;i++){
+        const a=$(`age_${g.key}_${i}`).value;
+        ages.push(g.key==='child' && a==='0' ? x.under1 : `${a} ${x.years}`);
+      }
+      lines.push(`   ${x.msgAge}: ${ages.join(', ')}`);
+    }
+  });
+  lines.push('');
+  const ped=document.querySelector('input[name=ped]:checked').value;
+  lines.push(`${x.msgPed}: ${ped==='yes'?x.yes:x.msgNone}`);
+  lines.push(`${x.msgFamily}: ${$('family').value.trim() || x.msgNone}`);
+  return lines.join('\n');
+}
+
+function getQuote(){
+  const err=$('err');
+  err.style.display='none';
+  const total=GROUPS.reduce((s,g)=>s+(+$('cnt_'+g.key).value),0);
+  let problem='';
+  if(!$('name').value.trim()) problem=t().errName;
+  else if(total===0) problem=t().errCount;
+  else if(!document.querySelector('input[name=ped]:checked')) problem=t().errPed;
+  else{
+    for(const s of document.querySelectorAll('#memberAges select')){
+      if(!s.value){ problem=t().errAge; break; }
+    }
+  }
+  if(problem){
+    err.textContent=problem;
+    err.style.display='block';
+    err.scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
+  window.location.href=`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(leadMessage())}`;
+}
+
+/* ---------- AGENT: PDF -> premiums -> text quote ---------- */
+function buildPremRows(){
+  $('premRows').innerHTML = SIS.map(([si,label],i)=>
+    `<tr><td>₹${label}</td>` +
+    [1,2,3].map(y=>`<td><input type="text" id="prem_${i}_${y}" placeholder="₹"></td>`).join('') +
+    `</tr>`).join('');
+}
+
+function parsePremiums(text){
+  const res={};
+  SIS.forEach(([si])=>{
+    const idx=text.indexOf(si);
+    if(idx<0) return;
+    let seg=text.slice(idx+si.length, idx+si.length+300);
+    seg=seg.replace(/Saved\s*₹?\s*[\d,]+\)?/gi,'');
+    const nums=seg.match(/\d{1,2}(?:,\d{2})*,\d{3}/g)||[];
+    if(nums.length>=3) res[si]=nums.slice(0,3);
+  });
+  return res;
+}
+
+async function readPdf(file){
+  const buf=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+  let text='';
+  for(let p=1;p<=pdf.numPages;p++){
+    const page=await pdf.getPage(p);
+    const c=await page.getTextContent();
+    text+=c.items.map(i=>i.str).join(' ')+'\n';
+  }
+  return text;
+}
+
+function setupAgent(){
+  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  buildPremRows();
+  $('pdfFile').addEventListener('change', async e=>{
+    const f=e.target.files[0];
+    if(!f) return;
+    $('pdfStatus').textContent='PDF वाचत आहे...';
+    try{
+      const text=await readPdf(f);
+      const found=parsePremiums(text);
+      let count=0;
+      SIS.forEach(([si],i)=>{
+        if(found[si]){
+          [1,2,3].forEach((y,k)=>{ $('prem_'+i+'_'+y).value=found[si][k]; });
+          count++;
+        }
+      });
+      $('pdfStatus').textContent = count===3
+        ? 'PDF वाचले. आकडे तपासा आणि आवश्यक असल्यास दुरुस्त करा.'
+        : `${count}/3 Sum Insured सापडले. उरलेले आकडे हाताने भरा.`;
+    }catch(err){
+      $('pdfStatus').textContent='PDF वाचता आले नाही. आकडे हाताने भरा.';
+    }
+  });
+}
+
+function buildQuote(){
+  const name=$('qName').value.trim();
+  let t2=`🛡️ *Star Health - Super Star Preferred*\n\nनमस्कार${name?' '+name:''},\nतुमच्या कुटुंबासाठी प्रीमियम कोटेशन खालीलप्रमाणे आहे:\n`;
+  SIS.forEach(([si,label],i)=>{
+    const rec = i===1 ? '  ⭐ Recommended' : '';
+    t2+=`\n💰 *Sum Insured ₹${label}*${rec}\n`;
+    [1,2,3].forEach(y=>{
+      const v=$('prem_'+i+'_'+y).value.trim();
+      t2+=`   • ${y} वर्ष: ₹${v||'-'}\n`;
+    });
+  });
+  t2+=`\n✅ Modern Treatments, Premium Waiver, Road Ambulance, Automatic Restoration of Sum Insured यांसह\n\nहे प्राथमिक कोटेशन आहे. अटी व शर्ती पॉलिसी वर्डिंगनुसार लागू होतील.\n\nअधिक माहितीसाठी संपर्क करा: ${WA_NUMBER.slice(2)}`;
+  return t2;
+}
+
+function genQuote(){
+  $('quoteOut').textContent=buildQuote();
+  $('outCard').classList.remove('hidden');
+  $('copyMsg').textContent='';
+  $('outCard').scrollIntoView({behavior:'smooth'});
+}
+
+async function copyQuote(){
+  try{ await navigator.clipboard.writeText($('quoteOut').textContent); $('copyMsg').textContent='कॉपी झाले ✅'; }
+  catch(e){ $('copyMsg').textContent='कॉपी करता आले नाही, मजकूर हाताने निवडा.'; }
+}
+
+async function shareQuote(){
+  const text=$('quoteOut').textContent;
+  if(navigator.share){
+    try{ await navigator.share({text}); return; }catch(e){ return; }
+  }
+  window.open('https://wa.me/?text='+encodeURIComponent(text),'_blank');
+}
+
+/* ---------- routing: customer page vs agent page (#agent) ---------- */
+function route(){
+  const agent = location.hash==='#agent';
+  $('customerView').classList.toggle('hidden', agent);
+  $('agentView').classList.toggle('hidden', !agent);
+}
+
+/* ---------- init ---------- */
+renderCounts();
+buildPremRows();
+setupAgent();
+setLang('mr');
+window.addEventListener('hashchange', route);
+route();
+</script>
+</body>
+</html>
